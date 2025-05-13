@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audiobook Catalog</title>
+  <link rel="icon" href="items/audiobook.png">
+  <style>
+    :root {
+      --dark-bg: #121212;
+      --header-bg: #0b626f;
+      --secondary-bg: #1f1f1f;
+      --track-bg: #2a2a2a;
+      --highlight-bg: #333333;
+      --text-color: #ffffff;
+      --subtext-color: #b3b3b3;
+      --finished-color: #4caf50;
+      --accent-color: #4caf50;
+      --border-radius: 6px;
+      --playing-bg: #0e3d3e;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--dark-bg);
+      font-family: Arial, sans-serif;
+      color: var(--text-color);
+    }
+    /* HEADER */
+    header {
+      background: var(--header-bg);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+    header h1 img {
+      width: 32px;
+      height: 32px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #searchBar {
+      width: 220px;
+      padding: 8px 10px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    /* CATALOG */
+    #catalog {
+      width: 90%;
+      max-width: 900px;
+      margin: 20px auto 100px;
+    }
+    .audiobook {
+      background: var(--secondary-bg);
+      margin-bottom: 20px;
+      border-radius: var(--border-radius);
+      padding: 16px;
+    }
+    /* Book header: Thumbnail above title */
+    .bookHeader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .bookThumbnail {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: var(--border-radius);
+      margin-bottom: 8px;
+    }
+    .bookTitle {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #fff;
+      text-align: center;
+    }
+    .bookTopPlayBtn {
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .bookTopPlayBtn img {
+      width: 36px;
+      height: 36px;
+    }
+    .continueListening {
+      color: var(--accent-color);
+      font-size: 0.9rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .trackList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .trackRow {
+      background: var(--track-bg);
+      border-radius: var(--border-radius);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .trackRow:hover {
+      background: var(--highlight-bg);
+    }
+    .trackRow.playing {
+      background: var(--playing-bg);
+    }
+    .trackInfo {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .trackTitle {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text-color);
+    }
+    .trackStatus {
+      font-size: 0.85rem;
+      color: var(--subtext-color);
+    }
+    .smallPlayBtn {
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+    .smallPlayBtn img {
+      width: 24px;
+      height: 24px;
+    }
+    .showAllBtn {
+      background: var(--accent-color);
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 6px 12px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      align-self: flex-start;
+    }
+    /* FOOTER PLAYER */
+    #footerPlayer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--header-bg);
+      padding: 16px 20px;
+      z-index: 999;
+      display: none;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    #footerPlayer.expanded {
+      padding: 20px 20px 40px;
+    }
+    #footerPlayerContent {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .footerTop {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .footerTrackInfo {
+      width: 33%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: left;
+    }
+    .footerCombined {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 20s linear infinite;
+      animation-play-state: running;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    .footerCenter {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #seekRange {
+      width: 100%;
+      max-width: 400px;
+      margin: 4px 0;
+    }
+    .timeInfo {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--subtext-color);
+    }
+    #footerControlsRow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      margin-top: 8px;
+    }
+    @media (max-width: 600px) {
+      #footerControlsRow {
+        gap: 70px;
+      }
+      .controlBtn img {
+        width: 50px;
+        height: 50px;
+      }
+    }
+    .footerControls {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+    .controlBtn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .controlBtn img {
+      width: 32px;
+      height: 32px;
+    }
+    .footerTimer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 20px;
+    }
+    .footerTimer .controlBtn img {
+      width: 28px;
+      height: 28px;
+    }
+    #timerStatus {
+      font-size: 0.8rem;
+      color: var(--subtext-color);
+    }
+    /* Toggle Expand Button */
+    #toggleExpandBtn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    #toggleExpandBtn img {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s ease;
+    }
+    /* Book cover in footer */
+    .bookCover {
+      display: none;
+      width: 80px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-bottom: 8px;
+    }
+    #footerPlayer.expanded .bookCover {
+      display: block;
+    }
+    #footerPlayer.expanded .controlBtn img {
+      width: 70px;
+      height: 70px;
+    }
+    @media (max-width: 600px) {
+      #footerPlayer {
+        padding: 20px;
+      }
+      #seekRange {
+        max-width: 100%;
+      }
+      .timerOption {
+        font-size: 1rem;
+      }
+    }
+    /* Sleep Timer Modal: Hidden by default */
+    #sleepTimerModal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      /* We'll only change display to "flex" when needed via JavaScript */
+      align-items: center;
+      justify-content: center;
+    }
+    .modalContent {
+      background: var(--secondary-bg);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      width: 80%;
+      max-width: 300px;
+    }
+    .modalContent h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .timerOption {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      color: #fff;
+      cursor: pointer;
+    }
+    .timerOption:last-child {
+      border-bottom: none;
+    }
+    .timerOption:hover {
+      background: var(--highlight-bg);
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER with favicon and logo -->
+  <header>
+    <h1><img src="items/audiobook.png" alt="Logo"> Audiobook Catalog</h1>
+    <div class="header-right">
+      <input type="text" id="searchBar" placeholder="Search...">
+    </div>
+  </header>
+  <!-- MAIN CATALOG -->
+  <div id="catalog">Loading catalog...</div>
+  <!-- FOOTER PLAYER -->
+  <div id="footerPlayer">
+    <div id="footerPlayerContent">
+      <div class="footerTop">
+        <img class="bookCover" id="bookCover" src="" alt="Book Cover">
+        <div class="footerTrackInfo">
+          <span class="footerCombined" id="footerCombined">Book Title | Chapter</span>
+        </div>
+      </div>
+      <div class="footerCenter">
+        <input type="range" id="seekRange" min="0" max="100" value="0">
+        <div class="timeInfo">
+          <span id="currentTimeLabel">0:00</span>
+          <span id="timeLeftLabel">0:00 left</span>
+        </div>
+      </div>
+      <div id="footerControlsRow">
+        <div class="footerControls">
+          <button class="controlBtn" id="rewindBtn">
+            <img src="items/back.png" alt="Back 15s">
+          </button>
+          <button class="controlBtn" id="playPauseBtn">
+            <img id="playPauseIcon" src="items/play-buttton.png" alt="Play">
+          </button>
+          <button class="controlBtn" id="forwardBtn">
+            <img src="items/next.png" alt="Forward 15s">
+          </button>
+        </div>
+        <div class="footerTimer">
+          <button class="controlBtn" id="timerBtn">
+            <img src="items/timer.png" alt="Sleep Timer">
+          </button>
+          <span id="timerStatus"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Hidden Global Audio Element -->
+  <audio id="globalAudio"></audio>
+  <!-- Sleep Timer Modal (hidden by default) -->
+  <div id="sleepTimerModal" style="display: none;">
+    <div class="modalContent">
+      <h2>Sleep timer</h2>
+      <div class="timerOption" data-minutes="5">5 minutes</div>
+      <div class="timerOption" data-minutes="10">10 minutes</div>
+      <div class="timerOption" data-minutes="15">15 minutes</div>
+      <div class="timerOption" data-minutes="30">30 minutes</div>
+      <div class="timerOption" data-minutes="45">45 minutes</div>
+      <div class="timerOption" data-minutes="60">1 hour</div>
+      <div class="timerOption" data-minutes="end">End of chapter</div>
+    </div>
+  </div>
+  <script>
+    // ---------------- Global Variables & LocalStorage Helpers ----------------
+    let sleepTimeout = null;
+    let sleepEndOfChapter = false;
+    const localKeyLastFile = 'last_listened_file';
+    const localKeyLastFolder = 'last_listened_folder';
+    function saveProgress(file, currentTime) {
+      localStorage.setItem('progress_' + file, currentTime);
+    }
+    function loadProgress(file) {
+      const saved = localStorage.getItem('progress_' + file);
+      return saved ? parseFloat(saved) : 0;
+    }
+    function setFinished(file, isFinished) {
+      localStorage.setItem('finished_' + file, isFinished ? 'true' : 'false');
+    }
+    function isFinished(file) {
+      return localStorage.getItem('finished_' + file) === 'true';
+    }
+    function setLastListened(file, folder) {
+      localStorage.setItem(localKeyLastFile, file);
+      localStorage.setItem(localKeyLastFolder, folder);
+    }
+    function getLastListened() {
+      return {
+        file: localStorage.getItem(localKeyLastFile),
+        folder: localStorage.getItem(localKeyLastFolder)
+      };
+    }
+    // ---------------- Sleep Timer Logic ----------------
+    const timerBtn = document.getElementById('timerBtn');
+    const timerStatus = document.getElementById('timerStatus');
+    const sleepTimerModal = document.getElementById('sleepTimerModal');
+    const timerOptions = document.querySelectorAll('.timerOption');
+    function pauseGlobalAudioFunc() {
+      if (!globalAudio.paused && (globalAudio.duration - globalAudio.currentTime > 60)) {
+        globalAudio.pause();
+        timerStatus.textContent = 'Timer triggered.';
+        console.log("Sleep timer triggered: Audio paused.");
+      } else {
+        console.log("Sleep timer triggered: Near end, auto-advance allowed.");
+      }
+    }
+    timerBtn.addEventListener('click', () => {
+      sleepTimerModal.style.display = 'flex';
+    });
+    sleepTimerModal.addEventListener('click', (e) => {
+      if (e.target === sleepTimerModal) sleepTimerModal.style.display = 'none';
+    });
+    timerOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        if (sleepTimeout) clearTimeout(sleepTimeout);
+        sleepEndOfChapter = false;
+        const val = option.dataset.minutes;
+        sleepTimerModal.style.display = 'none';
+        console.log("Sleep timer option selected:", val);
+        if (val === 'end') {
+          timerStatus.textContent = 'End of chapter';
+        } else {
+          const minutes = parseInt(val, 10);
+          if (!isNaN(minutes) && minutes > 0) {
+            const ms = minutes * 60 * 1000;
+            timerStatus.textContent = `${minutes} min`;
+            sleepTimeout = setTimeout(pauseGlobalAudioFunc, ms);
+            console.log(`Sleep timer set for ${minutes} minutes.`);
+          } else {
+            timerStatus.textContent = '';
+          }
+        }
+      });
+    });
+    // ---------------- Dynamic Media Player Background Color ----------------
+    function getAverageColor(imageSrc, callback) {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = imageSrc;
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          r += imageData.data[i];
+          g += imageData.data[i + 1];
+          b += imageData.data[i + 2];
+          count++;
+        }
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+        callback(`rgb(${r}, ${g}, ${b})`);
+      };
+      img.onerror = function() {
+        callback(null);
+      };
+    }
+    // ---------------- Global Audio & Footer Player Logic ----------------
+    const globalAudio = document.getElementById('globalAudio');
+    const footerPlayer = document.getElementById('footerPlayer');
+    const footerCombined = document.getElementById('footerCombined');
+    const seekRange = document.getElementById('seekRange');
+    const currentTimeLabel = document.getElementById('currentTimeLabel');
+    const timeLeftLabel = document.getElementById('timeLeftLabel');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const rewindBtn = document.getElementById('rewindBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    let currentFile = null, currentFolder = null, currentTracks = [], currentIndex = 0;
+    let autoAdvanceMode = false;
+    function togglePlayPause() {
+      if (!globalAudio.paused) {
+        globalAudio.pause();
+        playPauseIcon.src = "items/play-buttton.png";
+      } else {
+        globalAudio.play().then(() => {
+          playPauseIcon.src = "items/pause.png";
+        }).catch(err => console.error('Play error:', err));
+      }
+      updatePlayingUI();
+    }
+    function loadTrackInFooter(track, tracksArray, trackIdx, folderName, thumbnail, autoAdvance = false) {
+      autoAdvanceMode = autoAdvance;
+      if (currentFile === track.mp3_path && currentFolder === folderName) {
+        togglePlayPause();
+        return;
+      }
+      globalAudio.pause();
+      currentFile = track.mp3_path;
+      currentFolder = folderName;
+      currentTracks = tracksArray;
+      currentIndex = trackIdx;
+      footerCombined.textContent = `${folderName} | Chapter ${trackIdx + 1}`;
+      footerPlayer.style.display = 'block';
+      document.getElementById('bookCover').src = thumbnail;
+      getAverageColor(thumbnail, function(avgColor) {
+        if (avgColor) {
+          footerPlayer.style.background = avgColor;
+        } else {
+          footerPlayer.style.background = "var(--header-bg)";
+        }
+      });
+      setLastListened(currentFile, currentFolder);
+      globalAudio.src = track.mp3_path;
+      globalAudio.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+      globalAudio.load();
+      globalAudio.play().then(() => {
+        playPauseIcon.src = "items/pause.png";
+        updatePlayingUI();
+      }).catch(err => console.error('Play error:', err));
+    }
+    function onLoadedMetadata() {
+      if (autoAdvanceMode) {
+        globalAudio.currentTime = 0;
+        autoAdvanceMode = false;
+      } else {
+        const savedTime = loadProgress(currentFile);
+        if (savedTime && savedTime < globalAudio.duration) {
+          globalAudio.currentTime = savedTime;
+        }
+      }
+    }
+    globalAudio.addEventListener('timeupdate', () => {
+      if (!globalAudio.duration || globalAudio.duration === Infinity) return;
+      const current = globalAudio.currentTime, total = globalAudio.duration;
+      saveProgress(currentFile, current);
+      const percent = (current / total) * 100;
+      updateCatalogInProgress(currentFile, percent);
+      if (total - current < 1.5) {
+        setFinished(currentFile, true);
+        markCatalogFinished(currentFile);
+      }
+      seekRange.value = percent.toString();
+      currentTimeLabel.textContent = formatTime(current);
+      timeLeftLabel.textContent = `${formatTime(total - current)} left`;
+      footerCombined.style.animationPlayState = globalAudio.paused ? "paused" : "running";
+    });
+    globalAudio.addEventListener('ended', () => {
+      playPauseIcon.src = "items/play-buttton.png";
+      if (currentIndex < currentTracks.length - 1) {
+        currentIndex++;
+        loadTrackInFooter(currentTracks[currentIndex], currentTracks, currentIndex, currentFolder, currentTracks[0].thumbnail_path, true);
+      }
+    });
+    seekRange.addEventListener('input', () => {
+      if (!globalAudio.duration) return;
+      const percent = parseFloat(seekRange.value);
+      globalAudio.currentTime = (percent / 100) * globalAudio.duration;
+    });
+    rewindBtn.addEventListener('click', () => {
+      globalAudio.currentTime = Math.max(0, globalAudio.currentTime - 15);
+    });
+    forwardBtn.addEventListener('click', () => {
+      const dur = globalAudio.duration || 0;
+      globalAudio.currentTime = Math.min(dur, globalAudio.currentTime + 15);
+    });
+    playPauseBtn.addEventListener('click', () => {
+      togglePlayPause();
+    });
+    function formatTime(seconds) {
+      seconds = Math.floor(seconds);
+      const h = Math.floor(seconds / 3600),
+            m = Math.floor((seconds % 3600) / 60),
+            s = seconds % 60;
+      let result = '';
+      if (h > 0) result += `${h}hr `;
+      if (m > 0) result += `${m}min `;
+      result += `${s}sec`;
+      return result.trim();
+    }
+    // ---------------- Catalog UI Helpers ----------------
+    function updateCatalogInProgress(file, percent) {
+      const row = document.querySelector(`.trackRow[data-file="${CSS.escape(file)}"]`);
+      if (row) {
+        const statusEl = row.querySelector('.trackStatus');
+        if (statusEl) {
+          if (percent >= 99) {
+            statusEl.textContent = 'Finished';
+            statusEl.classList.add('finished');
+            statusEl.classList.remove('inProgress');
+          } else {
+            statusEl.textContent = `In progress (${Math.floor(percent)}%)`;
+            statusEl.classList.add('inProgress');
+            statusEl.classList.remove('finished');
+          }
+        }
+      }
+    }
+    function markCatalogFinished(file) {
+      const row = document.querySelector(`.trackRow[data-file="${CSS.escape(file)}"]`);
+      if (row) {
+        const statusEl = row.querySelector('.trackStatus');
+        if (statusEl) {
+          statusEl.textContent = 'Finished';
+          statusEl.classList.add('finished');
+          statusEl.classList.remove('inProgress');
+        }
+      }
+    }
+    const bookGroups = [];
+    function updatePlayingUI() {
+      document.querySelectorAll('.trackRow').forEach(row => {
+        row.classList.toggle('playing', row.dataset.file === currentFile);
+        const btnImg = row.querySelector('.smallPlayBtn img');
+        if (btnImg) {
+          btnImg.src = (row.dataset.file === currentFile && !globalAudio.paused)
+            ? "items/green-pause-button.png"
+            : "items/green-play-button.png";
+        }
+      });
+      bookGroups.forEach(group => {
+        if (group.folderTitle === currentFolder && !globalAudio.paused) {
+          if (group.topPlayBtn && group.topPlayBtn.querySelector('img')) {
+            group.topPlayBtn.querySelector('img').src = "items/green-pause-button.png";
+          }
+        } else {
+          if (group.topPlayBtn && group.topPlayBtn.querySelector('img')) {
+            group.topPlayBtn.querySelector('img').src = "items/green-play-button.png";
+          }
+        }
+      });
+    }
+    // ---------------- Toggle Expand/Collapse Footer Player ----------------
+    const toggleExpandBtn = document.createElement('button');
+    toggleExpandBtn.id = "toggleExpandBtn";
+    toggleExpandBtn.classList.add("controlBtn");
+    toggleExpandBtn.innerHTML = `<img src="items/up-arrow.png" alt="Expand Player">`;
+    toggleExpandBtn.style.position = "absolute";
+    toggleExpandBtn.style.top = "5px";
+    toggleExpandBtn.style.right = "5px";
+    toggleExpandBtn.addEventListener('click', () => {
+      footerPlayer.classList.toggle('expanded');
+      const img = toggleExpandBtn.querySelector('img');
+      if (footerPlayer.classList.contains('expanded')) {
+        img.style.transform = "rotate(180deg)";
+      } else {
+        img.style.transform = "rotate(0deg)";
+      }
+    });
+    window.addEventListener('DOMContentLoaded', () => {
+      footerPlayer.appendChild(toggleExpandBtn);
+    });
+    // ---------------- Catalog Build with Lazy Loading ----------------
+    const catalogDiv = document.getElementById('catalog');
+    function createAudiobookGroup(folderPath, tracks) {
+      const groupDiv = document.createElement('div');
+      groupDiv.classList.add('audiobook');
+      const folderTitle = formatFolderName(folderPath);
+      groupDiv.folderTitle = folderTitle;
+      let bookThumbnail = tracks[0].thumbnail_path || "";
+      const lastListened = getLastListened();
+      if (folderTitle === lastListened.folder) {
+        const cont = document.createElement('div');
+        cont.classList.add('continueListening');
+        cont.textContent = 'Continue Listening';
+        groupDiv.appendChild(cont);
+      }
+      const bookHeader = document.createElement('div');
+      bookHeader.classList.add('bookHeader');
+      const thumbImg = document.createElement('img');
+      thumbImg.classList.add('bookThumbnail');
+      thumbImg.src = bookThumbnail;
+      thumbImg.alt = folderTitle;
+      bookHeader.appendChild(thumbImg);
+      const titleEl = document.createElement('h2');
+      titleEl.classList.add('bookTitle');
+      titleEl.textContent = folderTitle;
+      bookHeader.appendChild(titleEl);
+      const topPlayBtn = document.createElement('div');
+      topPlayBtn.classList.add('bookTopPlayBtn');
+      topPlayBtn.innerHTML = `<img src="items/green-play-button.png" alt="Play Book">`;
+      topPlayBtn.addEventListener('click', () => {
+        if (groupDiv.folderTitle === currentFolder) {
+          togglePlayPause();
+        } else {
+          let topPlayIndex = null;
+          const lastListenedObj = getLastListened();
+          if (lastListenedObj.file) {
+            const idx = tracks.findIndex(t => t.mp3_path === lastListenedObj.file);
+            if (idx !== -1) topPlayIndex = idx;
+          }
+          if (topPlayIndex === null) topPlayIndex = tracks.length - 1;
+          loadTrackInFooter(tracks[topPlayIndex], tracks, topPlayIndex, folderTitle, bookThumbnail);
+        }
+      });
+      bookHeader.appendChild(topPlayBtn);
+      bookHeader.style.marginBottom = "12px";
+      groupDiv.appendChild(bookHeader);
+      let visibleCount = 5;
+      function renderTrackList() {
+        const oldList = groupDiv.querySelector('.trackList');
+        if (oldList) oldList.remove();
+        const trackList = document.createElement('div');
+        trackList.classList.add('trackList');
+        tracks.slice(0, visibleCount).forEach((track, index) => {
+          const trackRow = document.createElement('div');
+          trackRow.classList.add('trackRow');
+          trackRow.dataset.file = track.mp3_path;
+          trackRow.addEventListener('click', (e) => {
+            if (e.target.closest('.smallPlayBtn')) return;
+            loadTrackInFooter(track, tracks, index, folderTitle, bookThumbnail);
+          });
+          const trackInfo = document.createElement('div');
+          trackInfo.classList.add('trackInfo');
+          const trackTitle = document.createElement('div');
+          trackTitle.classList.add('trackTitle');
+          trackTitle.textContent = `Chapter ${index + 1}`;
+          trackInfo.appendChild(trackTitle);
+          const trackStatus = document.createElement('div');
+          trackStatus.classList.add('trackStatus');
+          if (isFinished(track.mp3_path)) {
+            trackStatus.textContent = 'Finished';
+            trackStatus.classList.add('finished');
+          } else {
+            const savedTime = loadProgress(track.mp3_path);
+            trackStatus.textContent = savedTime > 0 ? 'In progress' : 'Not started';
+          }
+          trackInfo.appendChild(trackStatus);
+          trackRow.appendChild(trackInfo);
+          const smallPlayBtn = document.createElement('button');
+          smallPlayBtn.classList.add('smallPlayBtn');
+          const smallImg = document.createElement('img');
+          smallImg.src = (currentFile === track.mp3_path && !globalAudio.paused)
+            ? "items/green-pause-button.png"
+            : "items/green-play-button.png";
+          smallPlayBtn.appendChild(smallImg);
+          smallPlayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentFile === track.mp3_path) {
+              togglePlayPause();
+            } else {
+              loadTrackInFooter(track, tracks, index, folderTitle, bookThumbnail);
+            }
+          });
+          trackRow.appendChild(smallPlayBtn);
+          trackList.appendChild(trackRow);
+        });
+        groupDiv.appendChild(trackList);
+        if (tracks.length > visibleCount) {
+          const showAllBtn = document.createElement('button');
+          showAllBtn.classList.add('showAllBtn');
+          showAllBtn.textContent = "Show All Chapters";
+          showAllBtn.addEventListener('click', () => {
+            visibleCount = tracks.length;
+            renderTrackList();
+          });
+          groupDiv.appendChild(showAllBtn);
+        }
+      }
+      renderTrackList();
+      bookGroups.push(groupDiv);
+      return groupDiv;
+    }
+    function formatFolderName(folderPath) {
+      let formatted = folderPath.replace(/^Books\s*\d+\-\d+\//i, '');
+      formatted = formatted.replace(/^\d+\s*-\s*/, '');
+      return formatted.trim();
+    }
+    // ---------------- Build Catalog ----------------
+    fetch('mp3_files.json')
+      .then(res => res.json())
+      .then(data => {
+        const grouped = {};
+        data.forEach(item => {
+          const normalized = item.mp3_path.replace(/\\/g, '/');
+          const lastSlash = normalized.lastIndexOf('/');
+          const parentFolder = normalized.substring(0, lastSlash);
+          if (!grouped[parentFolder]) {
+            grouped[parentFolder] = [];
+          }
+          grouped[parentFolder].push(item);
+        });
+        let folderEntries = Object.entries(grouped);
+        const lastListened = getLastListened();
+        if (lastListened.folder) {
+          const idx = folderEntries.findIndex(([f, _]) => formatFolderName(f) === lastListened.folder);
+          if (idx >= 0) {
+            const [entry] = folderEntries.splice(idx, 1);
+            folderEntries.unshift(entry);
+          }
+        }
+        const catalogContainer = document.getElementById('catalog');
+        catalogContainer.innerHTML = '';
+        folderEntries.forEach(([folder, tracks]) => {
+          catalogContainer.appendChild(createAudiobookGroup(folder, tracks));
+        });
+        const searchBar = document.getElementById('searchBar');
+        searchBar.addEventListener('input', function() {
+          const term = this.value.toLowerCase();
+          const books = catalogContainer.querySelectorAll('.audiobook');
+          books.forEach(book => {
+            const title = book.querySelector('.bookTitle').textContent.toLowerCase();
+            const rows = book.querySelectorAll('.trackRow');
+            let match = title.includes(term);
+            rows.forEach(row => {
+              const rowTitle = row.querySelector('.trackTitle').textContent.toLowerCase();
+              if (rowTitle.includes(term)) match = true;
+            });
+            book.style.display = match ? '' : 'none';
+          });
+        });
+      })
+      .catch(err => {
+        console.error('Error loading catalog:', err);
+        document.getElementById('catalog').textContent = 'Error loading catalog.';
+      });
+  </script>
+</body>
+</html>
